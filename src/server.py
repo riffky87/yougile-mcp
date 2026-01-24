@@ -539,32 +539,47 @@ def api_usage_guide():
 
 async def initialize_auth():
     """Initialize authentication automatically from environment variables."""
+    import sys
+    
+    # If API key is provided directly, use it without testing
+    if settings.yougile_api_key and settings.yougile_company_id:
+        try:
+            print(f"[Yougile MCP] Using provided API key", file=sys.stderr)
+            auth.auth_manager.set_credentials(settings.yougile_api_key, settings.yougile_company_id)
+            print(f"[Yougile MCP] Authentication configured successfully", file=sys.stderr)
+            return True
+        except Exception as e:
+            print(f"[Yougile MCP] Failed to set credentials: {e}", file=sys.stderr)
+            return False
+    
+    # Otherwise, require email/password/company_id for authentication
     if not all([settings.yougile_email, settings.yougile_password, settings.yougile_company_id]):
+        print(f"[Yougile MCP] Missing credentials. Need either (API_KEY + COMPANY_ID) or (EMAIL + PASSWORD + COMPANY_ID)", file=sys.stderr)
         return False
     
     try:
-        # First try API key from environment (MCP config)
-        api_key_to_test = settings.yougile_api_key
-        
-        # If no API key in environment, try loading from credentials file
-        if not api_key_to_test:
-            api_key_to_test = load_api_key_from_credentials()
+        # Try loading from credentials file
+        api_key_to_test = load_api_key_from_credentials()
         
         # Test existing API key if we have one
         if api_key_to_test:
             try:
+                print(f"[Yougile MCP] Testing saved API key", file=sys.stderr)
                 # Test existing key
                 auth.auth_manager.set_credentials(api_key_to_test, settings.yougile_company_id)
                 async with YouGileClient(auth.auth_manager) as client:
                     # Test key with a simple API call (get users)
                     await client.get("/users")
                 
+                print(f"[Yougile MCP] Saved API key is valid", file=sys.stderr)
                 return True
                 
-            except Exception:
+            except Exception as e:
+                print(f"[Yougile MCP] Saved API key is invalid: {e}", file=sys.stderr)
                 pass
         
         # Create new API key
+        print(f"[Yougile MCP] Creating new API key", file=sys.stderr)
         temp_auth = auth.auth_manager.__class__()
         async with YouGileClient(temp_auth) as client:
             api_key = await auth_api.create_api_key(
@@ -580,9 +595,11 @@ async def initialize_auth():
             # Save API key to credentials file for future use
             await save_api_key_to_credentials(api_key)
             
+        print(f"[Yougile MCP] New API key created successfully", file=sys.stderr)
         return True
         
-    except Exception:
+    except Exception as e:
+        print(f"[Yougile MCP] Authentication failed: {e}", file=sys.stderr)
         return False
 
 async def save_api_key_to_credentials(api_key: str):
@@ -650,9 +667,19 @@ def load_api_key_from_credentials() -> str:
 
 def main():
     """Main entry point for the server."""
+    import sys
+    
     # Initialize authentication if credentials are provided
-    if settings.yougile_email and settings.yougile_password and settings.yougile_company_id:
+    if settings.yougile_api_key and settings.yougile_company_id:
+        # Direct API key provided
+        print(f"[Yougile MCP] Initializing with API key", file=sys.stderr)
         asyncio.run(initialize_auth())
+    elif settings.yougile_email and settings.yougile_password and settings.yougile_company_id:
+        # Email/password authentication
+        print(f"[Yougile MCP] Initializing with email/password", file=sys.stderr)
+        asyncio.run(initialize_auth())
+    else:
+        print(f"[Yougile MCP] WARNING: No authentication credentials provided", file=sys.stderr)
     
     mcp.run()
 
