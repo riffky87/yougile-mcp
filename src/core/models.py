@@ -13,7 +13,7 @@ class YouGileBaseModel(BaseModel):
     """Base model for all YouGile entities."""
     id: str = Field(description="Unique identifier")
     timestamp: Optional[datetime] = Field(None, description="Creation/modification timestamp")
-    deleted: bool = Field(False, description="Whether the entity is deleted")
+    deleted: Optional[bool] = Field(False, description="Whether the entity is deleted")
 
 
 class PaginatedResponse(BaseModel):
@@ -146,8 +146,8 @@ class TaskDeadline(BaseModel):
     """Task deadline information."""
     deadline: Optional[int] = Field(None, description="Deadline timestamp")
     start_date: Optional[int] = Field(None, alias="startDate", description="Start date timestamp")
-    with_time: bool = Field(False, alias="withTime", description="Whether time is included")
-    deleted: bool = Field(False, description="Whether deadline is deleted")
+    with_time: Optional[bool] = Field(False, alias="withTime", description="Whether time is included")
+    deleted: Optional[bool] = Field(False, description="Whether deadline is deleted")
     
     class Config:
         populate_by_name = True
@@ -157,20 +157,20 @@ class TaskTimeTracking(BaseModel):
     """Task time tracking information."""
     plan: Optional[int] = Field(None, description="Planned time in hours")
     work: Optional[int] = Field(None, description="Actual work time in hours")
-    deleted: bool = Field(False, description="Whether time tracking is deleted")
+    deleted: Optional[bool] = Field(False, description="Whether time tracking is deleted")
 
 
 class TaskStopwatch(BaseModel):
     """Task stopwatch information."""
-    running: bool = Field(False, description="Whether stopwatch is running")
+    running: Optional[bool] = Field(False, description="Whether stopwatch is running")
     seconds: Optional[int] = Field(None, description="Elapsed seconds")
-    deleted: bool = Field(False, description="Whether stopwatch is deleted")
+    deleted: Optional[bool] = Field(False, description="Whether stopwatch is deleted")
 
 
 class TaskChecklist(BaseModel):
     """Task checklist item."""
     title: str = Field(description="Checklist item title")
-    is_completed: bool = Field(False, description="Whether item is completed")
+    is_completed: Optional[bool] = Field(False, description="Whether item is completed")
 
 
 class TaskChecklistGroup(BaseModel):
