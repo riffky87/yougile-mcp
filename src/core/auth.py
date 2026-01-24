@@ -37,7 +37,11 @@ class AuthManager:
     def get_auth_headers(self) -> Dict[str, str]:
         """Get authentication headers for API requests."""
         if not self._api_key:
-            raise AuthenticationError("No API key configured")
+            raise AuthenticationError(
+                f"YOUGILE AUTH ERROR: No API key configured. "
+                f"Current api_key value: '{self._api_key}' (type: {type(self._api_key).__name__}). "
+                f"Check environment variable substitution in opencode.json"
+            )
         
         return {
             "Authorization": f"Bearer {self._api_key}",

@@ -541,10 +541,17 @@ async def initialize_auth():
     """Initialize authentication automatically from environment variables."""
     import sys
     
+    # Debug: Print all environment variables related to Yougile
+    print(f"[Yougile MCP] DEBUG - Environment variables:", file=sys.stderr)
+    print(f"  YOUGILE_API_KEY: '{settings.yougile_api_key}' (len={len(settings.yougile_api_key) if settings.yougile_api_key else 0})", file=sys.stderr)
+    print(f"  YOUGILE_COMPANY_ID: '{settings.yougile_company_id}'", file=sys.stderr)
+    print(f"  YOUGILE_EMAIL: '{settings.yougile_email}'", file=sys.stderr)
+    print(f"  YOUGILE_PASSWORD: '{'*' * len(settings.yougile_password) if settings.yougile_password else 'None'}'", file=sys.stderr)
+    
     # If API key is provided directly, use it without testing
     if settings.yougile_api_key and settings.yougile_company_id:
         try:
-            print(f"[Yougile MCP] Using provided API key", file=sys.stderr)
+            print(f"[Yougile MCP] Using provided API key (first 10 chars: {settings.yougile_api_key[:10]}...)", file=sys.stderr)
             auth.auth_manager.set_credentials(settings.yougile_api_key, settings.yougile_company_id)
             print(f"[Yougile MCP] Authentication configured successfully", file=sys.stderr)
             return True
